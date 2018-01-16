@@ -6,6 +6,7 @@ const uglify = require('gulp-uglify'); //npm install gulp-uglify -  to minify th
 const sass = require('gulp-sass'); // npm install gulp-sass -  to minify the css file
 const concat = require('gulp-concat'); // npm install gulp-concat - to concat the file
 const spsave = require('gulp-spsave'); // npm install gulp-spsave - to upoad a file to SharePoint
+const cached = require('gulp-cached'); // npm install gulp-spsave - to upoad a file to SharePoint
 
 /*
 --Top LEVEL FUNCTION --
@@ -17,18 +18,46 @@ gulp.watch - watch files and folder for changes
 
  */
 
-//To Upload a file to SharePoint
-gulp.task('uploadToSP', function () {
-    return gulp.src("./dist/js/*.js")
-        .pipe(spsave({
-            username: "t@mazige.onmicrosoft.com",
-            password: "Abcd@1234",
-            siteUrl: "https://mazige.sharepoint.com/sites/dev/",
-            folder: "Shared Documents/scripts",
-            checkin: true,
-            checkinType: 1
-        }));
+
+var coreOptions = {
+    siteUrl: "https://<TENENTNAME>/sites/dev/",
+    notification: true,
+    folder: "Shared Documents/apps/",
+    flatten: false
+
+};
+
+var creds = {
+    username: "<USERNAME>",
+    password: "<PASSWORD>"
+};
+
+gulp.task('UploadToSP_EveryThing', function () {
+    return gulp.src('dist/**')
+        .pipe(cached('spFiles'))
+        .pipe(spsave(coreOptions, creds))
 });
+
+gulp.task('default', function () {
+    //create an initial in-memory cache of files
+    gulp.src('dist/**')
+        .pipe(cached('spFiles'));
+    //Watch the dest folder for any changes of these files
+    gulp.watch(['.dist/**'], ['dist']);
+});
+
+//To Upload a file to SharePoint
+//gulp.task('uploadToSP', function () {
+//    return gulp.src("./dist/js/*.js")
+//        .pipe(spsave({
+//            username: "<USERNAME>",
+//            password: "<PASSWORD>",
+//            siteUrl: "https://<TENENTNAME>/sites/dev/",
+//            folder: "Shared Documents/scripts",
+//            checkin: true,
+//            checkinType: 1
+//        }));
+//});
 
 // to concat the js file
 gulp.task('scripts', function () {
@@ -72,7 +101,8 @@ gulp.task('message', function () {
 });
 
 // default task can run by using only gulp to the command prompt
-gulp.task('default', ['message', 'copyFile', 'imageMin', 'minify', 'sass', 'scripts','uploadToSP']);
+//gulp.task('default', ['message', 'copyFile', 'imageMin', 'minify', 'sass', 'scripts','uploadToSP']);
+
 
 /*gulp.task('default', ['sass'], function () {
     console.log('default Task');
